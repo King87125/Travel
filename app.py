@@ -5,6 +5,8 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+from http import HTTPStatus
+from dashscope import Application
 
 # 加载环境变量
 load_dotenv()
@@ -110,60 +112,105 @@ def index():
         
 #     except Exception as e:
 #         return jsonify({'error': str(e)}), 500
+# @app.route('/ask', methods=['POST'])
+# def ask():
+#     try:
+#         data = request.json
+#         question = data.get('question', '')
+
+#         # Start streaming the response
+#         completion = client.chat.completions.create(
+#             model="deepseek-r1",
+#             messages=[{'role': 'user', 'content': question}],
+#             stream=True
+#         )
+
+#         reasoning_content = ""  # Store reasoning content
+#         answer_content = ""     # Store the final answer content
+#         is_answering = False    # Check if we have started answering
+
+#         # Initialize response structure
+#         response = {
+#             'reasoning': '',
+#             'answer': ''
+#         }
+
+#         # Process the streamed response
+#         for chunk in completion:
+#             # If chunk.choices is empty, print usage info
+#             if not chunk.choices:
+#                 print("\nUsage:")
+#                 print(chunk.usage)
+#             else:
+#                 delta = chunk.choices[0].delta
+
+#                 # Capture reasoning content if present
+#                 if hasattr(delta, 'reasoning_content') and delta.reasoning_content != None:
+#                     reasoning_content += delta.reasoning_content
+#                 else:
+#                     # Start final answer once reasoning is done
+#                     if delta.content != "" and not is_answering:
+#                         is_answering = True
+
+#                     # Append the answer content
+#                     answer_content += delta.content
+
+#         # Set the reasoning and answer content in the response
+#         response['reasoning'] = reasoning_content
+#         response['answer'] = answer_content
+
+#         # Return the response as JSON
+#         return jsonify(response)
+
+#     except Exception as e:
+#         # Handle errors
+#         return jsonify({'error': str(e)}), 500
+
+
+# # 用于存储用户的对话历史（简单的内存存储示例）
+user_memory = {}
+
 @app.route('/ask', methods=['POST'])
 def ask():
     try:
         data = request.json
-        question = data.get('question', '')
+        user_id = data.get('user_id', '')  # 从请求中获取用户ID
+        question = data.get('question', '')  # 从请求中获取问题
 
-        # Start streaming the response
-        completion = client.chat.completions.create(
-            model="deepseek-r1",
-            messages=[{'role': 'user', 'content': question}],
-            stream=True
+        # 获取该用户的历史对话，如果没有则初始化为空
+        if user_id not in user_memory:
+            user_memory[user_id] = []
+
+        # 将新的问题添加到该用户的对话历史中
+        user_memory[user_id].append({'role': 'user', 'content': question})
+
+        # 调用 Dashscope API 进行聊天生成，传递历史对话作为上下文
+        response = Application.call(
+            api_key=os.getenv("DASHSCOPE_API_KEY"),  # 从环境变量中获取API Key
+            app_id='d656bb2fb64446bdb1d77f8d9580ff51',  # 替换为你的实际应用ID
+            prompt=question  # 将问题传递给 API，后续可以扩展为将历史对话传递给API
         )
 
-        reasoning_content = ""  # Store reasoning content
-        answer_content = ""     # Store the final answer content
-        is_answering = False    # Check if we have started answering
+        if response.status_code != HTTPStatus.OK:
+            # 如果请求失败，返回错误详情
+            return jsonify({
+                'error': f"request_id={response.request_id}, code={response.status_code}, message={response.message}"
+            }), 500
+        else:
+            # 获取模型的回答
+            answer = response.output.text
 
-        # Initialize response structure
-        response = {
-            'reasoning': '',
-            'answer': ''
-        }
+            # 将模型的回答添加到用户的对话历史中
+            user_memory[user_id].append({'role': 'assistant', 'content': answer})
 
-        # Process the streamed response
-        for chunk in completion:
-            # If chunk.choices is empty, print usage info
-            if not chunk.choices:
-                print("\nUsage:")
-                print(chunk.usage)
-            else:
-                delta = chunk.choices[0].delta
-
-                # Capture reasoning content if present
-                if hasattr(delta, 'reasoning_content') and delta.reasoning_content != None:
-                    reasoning_content += delta.reasoning_content
-                else:
-                    # Start final answer once reasoning is done
-                    if delta.content != "" and not is_answering:
-                        is_answering = True
-
-                    # Append the answer content
-                    answer_content += delta.content
-
-        # Set the reasoning and answer content in the response
-        response['reasoning'] = reasoning_content
-        response['answer'] = answer_content
-
-        # Return the response as JSON
-        return jsonify(response)
+            # 返回API响应中的推理和答案
+            return jsonify({
+                'reasoning': answer,  # 假设推理内容在answer中
+                'answer': answer  # 假设答案也在answer中
+            })
 
     except Exception as e:
-        # Handle errors
-        return jsonify({'error': str(e)}), 500
-
+        return jsonify({'error': str(e)}), 500  # 捕获异常并返回错误信息
 # 用户加载
 @login_manager.user_loader
 def load_user(user_id):
