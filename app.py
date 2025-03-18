@@ -83,27 +83,85 @@ def logout():
 # 登录后首页
 @app.route('/')
 @login_required
+def main():
+    return render_template('main.html')
+
+@app.route('/index')
+@login_required
 def index():
     return render_template('index.html')
 
 # 旅行助手接口
+# @app.route('/ask', methods=['POST'])
+# def ask():
+#     try:
+#         data = request.json
+#         question = data.get('question', '')
+        
+#         completion = client.chat.completions.create(
+#             model="deepseek-r1",
+#             messages=[{'role': 'user', 'content': question}]
+#         )
+        
+#         return jsonify({
+#             'reasoning': completion.choices[0].message.reasoning_content,
+#             'answer': completion.choices[0].message.content
+#         })
+        
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
 @app.route('/ask', methods=['POST'])
 def ask():
     try:
         data = request.json
         question = data.get('question', '')
-        
+
+        # Start streaming the response
         completion = client.chat.completions.create(
             model="deepseek-r1",
-            messages=[{'role': 'user', 'content': question}]
+            messages=[{'role': 'user', 'content': question}],
+            stream=True
         )
-        
-        return jsonify({
-            'reasoning': completion.choices[0].message.reasoning_content,
-            'answer': completion.choices[0].message.content
-        })
-        
+
+        reasoning_content = ""  # Store reasoning content
+        answer_content = ""     # Store the final answer content
+        is_answering = False    # Check if we have started answering
+
+        # Initialize response structure
+        response = {
+            'reasoning': '',
+            'answer': ''
+        }
+
+        # Process the streamed response
+        for chunk in completion:
+            # If chunk.choices is empty, print usage info
+            if not chunk.choices:
+                print("\nUsage:")
+                print(chunk.usage)
+            else:
+                delta = chunk.choices[0].delta
+
+                # Capture reasoning content if present
+                if hasattr(delta, 'reasoning_content') and delta.reasoning_content != None:
+                    reasoning_content += delta.reasoning_content
+                else:
+                    # Start final answer once reasoning is done
+                    if delta.content != "" and not is_answering:
+                        is_answering = True
+
+                    # Append the answer content
+                    answer_content += delta.content
+
+        # Set the reasoning and answer content in the response
+        response['reasoning'] = reasoning_content
+        response['answer'] = answer_content
+
+        # Return the response as JSON
+        return jsonify(response)
+
     except Exception as e:
+        # Handle errors
         return jsonify({'error': str(e)}), 500
 
 # 用户加载

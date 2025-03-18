@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIGC智慧旅行规划平台</title>
+    <style>
+        :root {
+            --primary-color: #006FF6;  /* 品牌主色 */
+            --secondary-color: #F5F7FA;  /* 次色 */
+            --ai-accent: #00C1DE;  /* AI功能强调色 */
+            --background-gradient: linear-gradient(135deg, #4A90E2, #00C1DE, #8E2DE2);  /* 炫酷的背景渐变 */
+        }
+
+        /* 携程式模块化布局 */
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* 首屏AI交互区 */
+        .hero-section {
+            background: var(--background-gradient);
+            height: 680px;
+            border-radius: 0 0 32px 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 导航栏 */
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 20px;
+            width: 100%;
+        }
+
+        .logo img {
+            width: 120px;
+        }
+
+        .nav-items span {
+            font-size: 18px;
+            margin: 0 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-items span:hover {
+            color: var(--ai-accent);
+        }
+
+        /* 旅梦文案 */
+        .dream-text {
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .dream-text span {
+            opacity: 0;
+            display: inline-block;
+            margin-left: 2px;
+            animation: revealText 2s ease-in-out forwards;
+        }
+
+        @keyframes revealText {
+            0% { opacity: 0; transform: translateX(30px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .dream-text span:nth-child(odd) {
+            animation-delay: 0.2s;
+        }
+
+        .dream-text span:nth-child(even) {
+            animation-delay: 0.4s;
+        }
+
+        /* 英文文案效果 */
+        .english-text {
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            opacity: 0;
+            animation: revealEnglishText 10s ease-in-out infinite;
+        }
+
+        .english-text span {
+            opacity: 0;
+            display: inline-block;
+            margin-left: 2px;
+            animation: revealLetter 2s ease-in-out forwards;
+        }
+
+        @keyframes revealEnglishText {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes revealLetter {
+            0% { opacity: 0; transform: translateX(30px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        /* AIGC输入框替换为按钮 */
+        .ai-generator {
+            width: 800px;
+            position: relative;
+            text-align: center;
+        }
+        .ai-button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            background: var(--ai-accent);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .ai-button:hover {
+            background: #006FF6;
+        }
+
+        /* 动态标签云 */
+        .tag-cloud {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 40px;
+            opacity: 0;
+            animation: fadeIn 0.6s 0.3s forwards;
+        }
+        .tag {
+            padding: 8px 24px;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.9);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* 双栏布局 */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 48px;
+            margin-top: 64px;
+        }
+
+        /* AI实验室案例展示 */
+        .ai-lab-case {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+        }
+        .ai-lab-case:hover {
+            transform: translateY(-4px);
+        }
+
+        /* 时间轴动态反馈 */
+        .timeline-feedback {
+            margin-top: 40px;
+            background: var(--secondary-color);
+            border-radius: 16px;
+            padding: 24px;
+        }
+        .timeline-item {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 12px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            opacity: 0;
+            animation: slideIn 0.4s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <div class="container">
+            <!-- 导航栏 -->
+            <nav class="nav-bar">
+                <div class="nav-items">
+                    <span><i class="iconfont icon-hotel"></i> 酒店</span>
+                    <span><i class="iconfont icon-flight"></i> 机票</span>
+                    <span><i class="iconfont icon-compass"></i> 美食</span>
+                    <span><i class="iconfont icon-lab"></i> 实验室</span>
+                </div>
+            </nav>
+
+            <!-- 旅梦文案 -->
+            <div class="dream-text">
+                <span>旅</span><span>梦</span><span>，</span><span>通</span><span>向</span><span>梦</span><span>想</span><span>的</span><span>旅</span><span>程</span><span>！</span>
+            </div>
+
+            <!-- 英文文案 -->
+            <div class="english-text">
+                <span>T</span><span>r</span><span>a</span><span>v</span><span>e</span><span>l</span><span> </span><span>D</span><span>r</span><span>e</span><span>a</span><span>m</span><span>s</span><span> </span><span>t</span><span>o</span><span> </span><span>Y</span><span>o</span><span>u</span><span>r</span><span> </span><span>W</span><span>o</span><span>r</span><span>l</span><span>d</span><span>!</span>
+            </div>
+
+            <!-- AIGC核心交互区 -->
+            <div class="ai-generator">
+                <button class="ai-button">
+                    探索您的梦想旅程！
+                </button>
+                <div class="tag-cloud">
+                    <div class="tag">🏖️ 海岛度假</div>
+                    <div class="tag">🚶 城市漫步</div>
+                    <div class="tag">🎨 艺术之旅</div>
+                    <div class="tag">🍜 美食探索</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-layout">
+            <!-- 左侧AI实验室 -->
+            <div class="ai-lab">
+                <h3>📚 AI旅行实验室</h3>
+                <div class="ai-lab-case">
+                    <img src="https://example.com/emotion-icon1.png" alt="杭州文化路线" 
+                         style="border-radius: 8px; margin-bottom: 12px;">
+                    <p>🎯 用户需求：3天2晚文化深度游</p>
+                    <p>💡 AI优化：避开周一闭馆，智能匹配讲解服务</p>
+                </div>
+            </div>
+
+            <!-- 主内容区 -->
+            <div class="main-content">
+                <!-- 地图容器 -->
+                <div id="map-container" style="height: 500px; border-radius: 16px;"></div>
+                
+                <!-- 动态反馈时间轴 -->
+                <div class="timeline-feedback" id="timeline">
+                    <div class="timeline-item">
+                        <h4>🚀 AI正在分析需求...</h4>
+                        <p>识别关键词：杭州、文化古迹、4天3晚</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 百度地图初始化
+        function initBaiduMap() {
+            const map = new BMapGL.Map('map-container');
+            map.centerAndZoom(new BMapGL.Point(120.155, 30.274), 12);
+            map.enableScrollWheelZoom(true);
+            
+            // 添加3D建筑图层
+            map.setMapType(BMAP_EARTH_MAP);
+            
+            // 实时热力图
+            const heatmap = new BMapGL.HeatmapOverlay({radius: 40});
+            heatmap.setDataSet({
+                data: generateHeatmapData(),
+                max: 100
+            });
+            map.addOverlay(heatmap);
+        }
+
+        // 模拟AIGC生成逻辑
+        function simulateAIGenerate(query) {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = `
+                <div class="timeline-item">
+                    <h4>🧠 AI思考中...</h4>
+                    <p>分析用户画像：亲子游 · 文化偏好 · 中等预算</p>
+                    <p>🔍 正在匹配杭州博物馆开放时间</p>
+                </div>
+            `;
+            
+            // 模拟API调用延迟
+            setTimeout(() => {
+                timeline.innerHTML += `
+                    <div class="timeline-item success">
+                        <h4>✅ 生成成功！杭州4日文化路线</h4>
+                        <p>Day1: 西湖文化圈 → Day2: 良渚遗址 → Day3: 运河文化带</p>
+                        <button onclick="showDetailRoute()">查看详细路线</button>
+                    </div>
+                `;
+                updateMapRoute(); // 更新地图路线
+            }, 2500);
+        }
+
+        // 初始化执行
+        window.onload = () => {
+            const script = document.createElement('script');
+            script.src = `https://api.map.baidu.com/api?type=webgl&v=1.0&ak=您的百度地图AK&callback=initBaiduMap`;
+            document.body.appendChild(script);
+            // 新增按钮事件监听
+            document . querySelector ( '.ai-button' ) . addEventListener ('click', () => { 
+                window . location . href = '/index' ; 
+             } ) ;
+            // 绑定AI生成事件
+            document.querySelector('.ai-button').addEventListener('click', () => simulateAIGenerate('杭州 文化古迹 4天3晚'));
+        };
+    </script>
+</body>
+</html>

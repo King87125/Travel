@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅行规划师问卷</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #7bc4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #7bc4f4;
+        }
+        .form {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            width: 50%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .question {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .answer {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .progress {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .encouragement {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .btn-container .btn {
+            width: 48%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form">
+            <h1>旅行规划师问卷</h1>
+            <div id="progress" class="progress">1/46</div>
+            <div id="question-container">
+                <!-- Question content will be dynamically inserted here -->
+            </div>
+            <div class="encouragement">马上就完成你的规划了！只需回答最后几个问题。</div>
+            <div class="btn-container">
+                <button id="prev-btn" class="btn hidden">返回上一题</button>
+                <button id="next-btn" class="btn">下一步</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Questions to ask
+        const questions = [
+            "1. 出行人数总共是多少？",
+            "2. 出行者的性别、年龄和健康状况（有无特殊疾病、过敏、老年人、孕妇等）？",
+            "3. 是否有婴幼儿或者需要照顾的家庭成员？如有，请提供具体人数和需求。",
+            "4. 参与者之间的关系是家庭旅行、朋友出游、情侣度假，还是团队/公司出行？",
+            "5. 是否需要安排独立空间？例如：单人房、双人房或家庭套房，或者是否需要考虑隐私需求？",
+            "6. 计划出发和返回的具体日期？是否有时间灵活性？",
+            "7. 总旅行时长（包括往返的交通时间）是多少？是否有固定的行程结束日期？",
+            "8. 是否有特殊的时间限制，比如需要避免节假日、签证问题、特殊纪念日等？",
+            "9. 出发城市是哪里？是否需要协助预订往返交通工具（如机票、火车票、巴士票等）？",
+            "10. 对交通方式的偏好：偏好乘坐哪种交通工具（飞机、火车、长途汽车、自驾、包车等）？",
+            "11. 是否需要为往返航班选择特定的航班时间？",
+            "12. 是否希望选择直达航班，还是接受转机？",
+            "13. 是否对交通换乘时间有具体要求（如避免长时间等待转机等）？",
+            "14. 是否愿意选择经济舱，还是更倾向于商务舱或头等舱？",
+            "15. 您对目的地的季节与气候有什么偏好？（例如，避免雨季、酷热、寒冷天气等）",
+            "16. 是否偏好在淡季出行，避开人流，还是更喜欢在旅游旺季出行？",
+            "17. 对于目的地是否有初步心仪的选择？如果没有，是否需要推荐？",
+            "18. 是否偏向于自然风光、历史文化、城市探险，还是更喜欢休闲度假？",
+            "19. 是否有特定景点或活动是您不愿意错过的？请列举。",
+            "20. 是否希望安排一些休闲活动或放松时间（如海滩、温泉、SPA等）？",
+            "21. 是否偏好城市探险、博物馆、购物体验等活动？",
+            "22. 是否愿意接受多城市/多国家串联的旅行计划？",
+            "23. 对于住宿的偏好，您更倾向于住酒店、民宿、度假村，还是更喜欢特色住宿（如树屋、船屋等）？",
+            "24. 对住宿位置有何要求？例如靠近景点、市中心、安静区域等。",
+            "25. 您对住宿的标准有何要求？是否更偏向经济型住宿还是奢华型住宿？",
+            "26. 对住宿设施有什么特别要求？如游泳池、健身房、SPA、WiFi等。",
+            "27. 是否有任何饮食限制或禁忌？例如素食、清真、无麸质等。",
+            "28. 是否希望尝试当地特色餐饮或小吃？",
+            "29. 对每日餐饮预算有什么要求？是否希望根据预算推荐餐厅选择？",
+            "30. 是否有任何体力上的限制？例如是否能接受较长时间的步行、爬山等活动？",
+            "31. 是否需要特殊健康照顾（如慢性病药物、紧急医疗方案等）？",
+            "32. 对于旅行预算，您预计的总预算是多少？预算是否包括交通、住宿、餐饮和活动费用等？",
+            "33. 对于预算的分配，是否有优先级（如更重视住宿、餐饮或体验等）？",
+            "34. 是否更倾向于经济型、标准型还是奢华型的旅行体验？",
+            "35. 是否需要为旅行购买旅行保险？如果需要，是否希望了解不同类型的保险选择？",
+            "36. 是否希望有私人导游、专属司机等定制化服务？",
+            "37. 是否有任何特殊体验需求？如文化交流、艺术体验、极限运动等？",
+            "38. 是否有任何特殊的节庆活动、纪念日或生日等需要安排的活动？",
+            "39. 是否希望安排购物时间或特定购物场所？",
+            "40. 是否需要在行程中预留自由活动时间？",
+            "41. 是否需要了解目的地的文化、禁忌或礼仪？",
+            "42. 是否需要帮助使用行程管理工具或其他旅行工具（如离线地图、翻译工具等）？",
+            "43. 是否有任何关于安全或紧急联系的信息需要提供？",
+            "44. 是否希望在行程的某些部分有灵活的调整空间？",
+            "45. 是否愿意考虑更多的推荐选项，还是更希望自己选择目的地和活动？",
+            "46. 是否有任何关于本次旅行的其他特别要求或注意事项？"
+        ];
+
+        let currentQuestionIndex = 0;
+        let answers = [];
+
+        const questionContainer = document.getElementById("question-container");
+        const nextBtn = document.getElementById("next-btn");
+        const prevBtn = document.getElementById("prev-btn");
+        const progress = document.getElementById("progress");
+
+        function showQuestion() {
+            const question = questions[currentQuestionIndex];
+            questionContainer.innerHTML = `
+                <div class="question">${question}</div>
+                <textarea class="answer" id="answer-input" placeholder="请输入您的回答..." rows="4"></textarea>
+            `;
+            progress.innerHTML = `${currentQuestionIndex + 1}/${questions.length}`;
+        }
+
+        function handleNextClick() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+                prevBtn.classList.remove("hidden");
+            } else {
+                generateFile();
+            }
+        }
+
+        function handlePrevClick() {
+            currentQuestionIndex--;
+            if (currentQuestionIndex >= 0) {
+                showQuestion();
+            }
+        }
+
+        function generateFile() {
+            const data = {
+                answers: answers,
+            };
+            const fileContent = JSON.stringify(data, null, 2);
+            const blob = new Blob([fileContent], { type: "application/json" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "travel_planning_answers.json";
+            link.click();
+            nextBtn.innerHTML = "已保存，感谢您的回答！";
+            nextBtn.disabled = true;
+        }
+
+        nextBtn.addEventListener("click", handleNextClick);
+        prevBtn.addEventListener("click", handlePrevClick);
+
+        // Initial setup
+        showQuestion();
+    </script>
+</body>
+</html>
